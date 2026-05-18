@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deriv Over/Under Analyzer</title>
+    
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Deriv%20OU%20Analyzer%22,%22short_name%22:%22OU%20Analyzer%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23111827%22,%22theme_color%22:%22%23111827%22,%22icons%22:[{%22src%22:%22https://cdn-icons-png.flaticon.com/512/423/423786.png%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22,%22purpose%22:%22any%20maskable%22}]}">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-3 select-none text-xs">
+
+    <div class="max-w-md mx-auto">
+        
+        <div class="mb-2 text-right">
+            <a href="index.html" class="inline-block text-[10px] text-emerald-400 hover:underline">← Switch to Matches Analyzer</a>
+        </div>
+
+        <div class="bg-gray-800 p-3 rounded-xl shadow-lg mb-3 flex flex-col gap-2">
+            <div class="flex gap-2">
+                <div class="flex-1">
+                    <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Market</label>
+                    <select id="marketSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="R_10">Volatility 10 Index</option>
+                        <option value="R_25">Volatility 25 Index</option>
+                        <option value="R_50">Volatility 50 Index</option>
+                        <option value="R_75">Volatility 75 Index</option>
+                        <option value="R_100" selected>Volatility 100 Index</option>
+                        <option value="1HZ10V">Volatility 10 (1s) Index</option>
+                        <option value="1HZ15V">Volatility 15 (1s) Index</option>
+                        <option value="1HZ100V">Volatility 100 (1s) Index</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Sample Ticks</label>
+                    <input type="number" id="sampleSize" value="100" min="20" max="500" class="w-16 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Prediction Barrier</label>
+                    <select id="digitPrediction" class="w-16 bg-gray-700 border border-gray-600 rounded-lg px-1 py-1 text-center text-white focus:outline-none focus:border-emerald-500">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected>4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                    </select>
+                </div>
+            </div>
+            <button id="connectBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold py-1.5 rounded-lg transition duration-200">
+                Connect WebSocket
+            </button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mb-3 text-center">
+            <div class="bg-gray-800 p-2 rounded-xl shadow-lg">
+                <span class="text-[9px] text-gray-400 uppercase">Last Price</span>
+                <div id="latestPrice" class="font-mono font-bold mt-1 text-blue-400 text-xs truncate">-</div>
+            </div>
+            <div class="bg-gray-800 p-2 rounded-xl shadow-lg">
+                <span class="text-[9px] text-gray-400 uppercase">Last Digit</span>
+                <div id="latestDigit" class="text-xl font-black text-yellow-400 mt-0.5">-</div>
+            </div>
+            <div class="bg-gray-800 p-2 rounded-xl shadow-lg">
+                <span class="text-[9px] text-purple-400 uppercase">Current Bias</span>
+                <div id="marketBias" class="text-xs font-bold mt-1 text-purple-400">Neutral</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div id="overBox" class="bg-gray-800 p-3 rounded-xl shadow-lg border-b-4 border-emerald-500 text-center">
+                <span class="text-emerald-400 font-bold text-[11px] tracking-wide uppercase" id="overLabel">Over 4</span>
+                <div id="overPct" class="text-2xl font-black text-white mt-1">0%</div>
+                <span id="overCount" class="text-[9px] text-gray-400">(0 Ticks)</span>
+            </div>
+            <div id="underBox" class="bg-gray-800 p-3 rounded-xl shadow-lg border-b-4 border-rose-500 text-center">
+                <span class="text-rose-400 font-bold text-[11px] tracking-wide uppercase" id="underLabel">Under 4</span>
+                <div id="underPct" class="text-2xl font-black text-white mt-1">0%</div>
+                <span id="underCount" class="text-[9px] text-gray-400">(0 Ticks)</span>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 p-3 rounded-xl shadow-lg">
+            <div class="h-44">
+                <canvas id="splitChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let tickHistory = [];
+        const appId = 1089;
+
+        const marketSelect = document.getElementById('marketSelect');
+        const sampleSizeInput = document.getElementById('sampleSize');
+        const digitPrediction = document.getElementById('digitPrediction');
+        const connectBtn = document.getElementById('connectBtn');
+        const latestPriceEl = document.getElementById('latestPrice');
+        const latestDigitEl = document.getElementById('latestDigit');
+        const marketBiasEl = document.getElementById('marketBias');
+        
+        const overLabel = document.getElementById('overLabel');
+        const overPctEl = document.getElementById('overPct');
+        const overCountEl = document.getElementById('overCount');
+        
+        const underLabel = document.getElementById('underLabel');
+        const underPctEl = document.getElementById('underPct');
+        const underCountEl = document.getElementById('underCount');
+
+        // Doughnut Chart Setup to represent proportions beautifully
+        const ctx = document.getElementById('splitChart').getContext('2d');
+        const splitChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Over', 'Equal', 'Under'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: ['rgba(16, 185, 129, 0.75)', 'rgba(245, 158, 11, 0.6)', 'rgba(239, 68, 68, 0.75)'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#9CA3AF', font: { size: 10 } }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        function connectToDeriv() {
+            if (ws) ws.close();
+            const market = marketSelect.value;
+            tickHistory = [];
+            
+            ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
+
+            ws.onopen = () => {
+                connectBtn.textContent = 'Disconnect';
+                connectBtn.classList.replace('bg-emerald-500', 'bg-rose-500');
+                ws.send(JSON.stringify({ ticks: market }));
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+                if (data.msg_type === 'tick' && data.tick) { processTick(data.tick); }
+            };
+
+            ws.onclose = () => { disconnectFromDeriv(); };
+        }
+
+        function disconnectFromDeriv() {
+            if (ws) ws.close();
+            ws = null;
+            connectBtn.textContent = 'Connect WebSocket';
+            connectBtn.classList.replace('bg-rose-500', 'bg-emerald-500');
+        }
+
+        function processTick(tick) {
+            const price = tick.quote;
+            const priceStr = price.toFixed(tick.pip_size);
+            const lastDigit = parseInt(priceStr.slice(-1));
+            const maxTicks = parseInt(sampleSizeInput.value) || 100;
+            const targetBarrier = parseInt(digitPrediction.value);
+
+            latestPriceEl.textContent = priceStr;
+            latestDigitEl.textContent = lastDigit;
+
+            // Push & balance window
+            tickHistory.push(lastDigit);
+            if (tickHistory.length > maxTicks) tickHistory.shift();
+
+            // Calculate Over / Under / Equal distributions
+            let overCount = 0;
+            let underCount = 0;
+            let equalCount = 0;
+            const total = tickHistory.length;
+
+            tickHistory.forEach(digit => {
+                if (digit > targetBarrier) overCount++;
+                else if (digit < targetBarrier) underCount++;
+                else equalCount++;
+            });
+
+            const overPct = total > 0 ? ((overCount / total) * 100) : 0;
+            const underPct = total > 0 ? ((underCount / total) * 100) : 0;
+            const equalPct = total > 0 ? ((equalCount / total) * 100) : 0;
+
+            // Update Labels dynamically based on the input choice
+            overLabel.textContent = `Over ${targetBarrier}`;
+            underLabel.textContent = `Under ${targetBarrier}`;
+
+            // Update UI blocks
+            overPctEl.textContent = `${overPct.toFixed(0)}%`;
+            overCountEl.textContent = `(${overCount} Ticks)`;
+
+            underPctEl.textContent = `${underPct.toFixed(0)}%`;
+            underCountEl.textContent = `(${underCount} Ticks)`;
+
+            // Determine Bias
+            if (overPct > underPct + 5) {
+                marketBiasEl.textContent = "📈 Over Bias";
+                marketBiasEl.className = "text-xs font-bold mt-1 text-emerald-400";
+            } else if (underPct > overPct + 5) {
+                marketBiasEl.textContent = "📉 Under Bias";
+                marketBiasEl.className = "text-xs font-bold mt-1 text-rose-400";
+            } else {
+                marketBiasEl.textContent = "⚖️ Balanced";
+                marketBiasEl.className = "text-xs font-bold mt-1 text-amber-400";
+            }
+
+            // Sync proportions on visual doughnut chart
+            splitChart.data.datasets[0].data = [overPct.toFixed(1), equalPct.toFixed(1), underPct.toFixed(1)];
+            splitChart.update('none');
+        }
+
+        connectBtn.addEventListener('click', () => {
+            if (ws) { disconnectFromDeriv(); } else { connectToDeriv(); }
+        });
+
+        marketSelect.addEventListener('change', () => { if (ws) connectToDeriv(); });
+        digitPrediction.addEventListener('change', () => { if (tickHistory.length > 0) processTick({ quote: parseFloat(latestPriceEl.textContent), pip_size: (latestPriceEl.textContent.split('.')[1] || '').length }); });
+    </script>
+</body>
+  </html>
+
