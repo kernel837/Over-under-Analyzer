@@ -27,14 +27,20 @@
                 <div class="flex-1">
                     <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Market</label>
                     <select id="marketSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="1HZ10V" selected>Volatility 10 (1s) Index</option>
+                        <option value="1HZ15V">Volatility 15 (1s) Index</option>
+                        <option value="1HZ25V">Volatility 25 (1s) Index</option>
+                        <option value="1HZ30V">Volatility 30 (1s) Index</option>
+                        <option value="1HZ50V">Volatility 50 (1s) Index</option>
+                        <option value="1HZ75V">Volatility 75 (1s) Index</option>
+                        <option value="1HZ90V">Volatility 90 (1s) Index</option>
+                        <option value="1HZ100V">Volatility 100 (1s) Index</option>
+                        
                         <option value="R_10">Volatility 10 Index</option>
                         <option value="R_25">Volatility 25 Index</option>
                         <option value="R_50">Volatility 50 Index</option>
                         <option value="R_75">Volatility 75 Index</option>
-                        <option value="R_100" selected>Volatility 100 Index</option>
-                        <option value="1HZ10V">Volatility 10 (1s) Index</option>
-                        <option value="1HZ15V">Volatility 15 (1s) Index</option>
-                        <option value="1HZ100V">Volatility 100 (1s) Index</option>
+                        <option value="R_100">Volatility 100 Index</option>
                     </select>
                 </div>
                 <div>
@@ -235,5 +241,5 @@
         digitPrediction.addEventListener('change', () => { if (tickHistory.length > 0) processTick({ quote: parseFloat(latestPriceEl.textContent), pip_size: (latestPriceEl.textContent.split('.')[1] || '').length }); });
     </script>
 </body>
-  </html>
+</html>
 
