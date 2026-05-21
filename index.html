@@ -9,8 +9,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Deriv%20OU%20Analyzer%22,%22short_name%22:%22OU%20Analyzer%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23111827%22,%22theme_color%22:%22%23111827%22,%22icons%22:[{%22src%22:%22https://cdn-icons-png.flaticon.com/512/423/423786.png%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22,%22purpose%22:%22any%20maskable%22}]}">
-
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -23,96 +21,108 @@
         </div>
 
         <div class="bg-gray-800 p-3 rounded-xl shadow-lg mb-3 flex flex-col gap-2">
-            <div class="mb-2">
-                <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Deriv API Trading Token</label>
-                <input type="password" id="apiToken" placeholder="Paste Read/Trade API token here..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-emerald-500 font-mono text-xs">
+            <div>
+                <label class="block text-[10px] font-medium text-gray-400 mb-0.5">API Trading Token</label>
+                <input type="password" id="apiToken" placeholder="Paste your API token here..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-emerald-500">
             </div>
 
             <div class="flex gap-2">
                 <div class="flex-1">
                     <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Market</label>
-                    <select id="marketSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-emerald-500">
-                        <option value="1HZ10V">Volatility 10 (1s) Index</option>
+                    <select id="marketSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white">
+                        <option value="1HZ10V" selected>Volatility 10 (1s) Index</option>
                         <option value="1HZ15V">Volatility 15 (1s) Index</option>
                         <option value="1HZ25V">Volatility 25 (1s) Index</option>
-                        <option value="1HZ30V">Volatility 30 (1s) Index</option>
-                        <option value="1HZ50V">Volatility 50 (1s) Index</option>
-                        <option value="1HZ75V">Volatility 75 (1s) Index</option>
-                        <option value="1HZ90V">Volatility 90 (1s) Index</option>
-                        <option value="1HZ100V">Volatility 100 (1s) Index</option>
                         <option value="R_10">Volatility 10 Index</option>
-                        <option value="R_25">Volatility 25 Index</option>
-                        <option value="R_50">Volatility 50 Index</option>
-                        <option value="R_75">Volatility 75 Index</option>
                         <option value="R_100">Volatility 100 Index</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Sample Ticks</label>
-                    <input type="number" id="sampleSize" value="100" min="20" max="500" class="w-16 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
                     <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Barrier</label>
-                    <select id="digitPrediction" class="w-16 bg-gray-700 border border-gray-600 rounded-lg px-1 py-1 text-center text-white focus:outline-none focus:border-emerald-500">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
+                    <select id="digitPrediction" class="w-16 bg-gray-700 border border-gray-600 rounded-lg px-1 py-1 text-center text-white">
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
                         <option value="4" selected>4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
+                        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
                     </select>
                 </div>
             </div>
-            
+
             <div class="flex gap-2">
-                <input type="number" id="stakeAmount" value="1.00" step="0.5" placeholder="Stake" class="w-1/2 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white">
-                <input type="number" id="martingaleMult" value="2.1" step="0.1" placeholder="Martingale Mult" class="w-1/2 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white">
+                <input type="number" id="stake" value="1.00" step="0.5" class="w-1/2 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white" placeholder="Stake ($)">
+                <input type="number" id="martingale" value="2.1" step="0.1" class="w-1/2 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white" placeholder="Martingale Mult">
             </div>
 
-            <button id="connectBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold py-1.5 rounded-lg transition duration-200">
+            <button id="connectBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold py-1.5 rounded-lg">
                 Connect WebSocket
             </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 mb-3 text-center">
-            <div class="bg-gray-800 p-2 rounded-xl shadow-lg">
-                <span class="text-[9px] text-gray-400 uppercase">Last Price</span>
-                <div id="latestPrice" class="font-mono font-bold mt-1 text-blue-400 text-xs truncate">-</div>
-            </div>
-            <div class="bg-gray-800 p-2 rounded-xl shadow-lg">
-                <span class="text-[9px] text-gray-400 uppercase">Last Digit</span>
-                <div id="latestDigit" class="text-xl font-black text-yellow-400 mt-0.5">-</div>
-            </div>
-            <div class="bg-gray-800 p-2 rounded-xl shadow-lg">
-                <span class="text-[9px] text-purple-400 uppercase">Current Bias</span>
-                <div id="marketBias" class="text-xs font-bold mt-1 text-purple-400">Neutral</div>
-            </div>
-        </div>
-
         <div class="grid grid-cols-2 gap-3 mb-3">
-            <div id="overBox" class="bg-gray-800 p-3 rounded-xl shadow-lg border-b-4 border-emerald-500 text-center">
-                <span class="text-emerald-400 font-bold text-[11px] tracking-wide uppercase" id="overLabel">Over 4</span>
-                <div id="overPct" class="text-2xl font-black text-white mt-1">0%</div>
-                <span id="overCount" class="text-[9px] text-gray-400">(0 Ticks)</span>
+            <div class="bg-gray-800 p-3 rounded-xl shadow-lg text-center">
+                <span class="text-emerald-400 font-bold text-[11px]" id="overLabel">Over 4</span>
+                <div id="overPct" class="text-2xl font-black text-white">0%</div>
             </div>
-            <div id="underBox" class="bg-gray-800 p-3 rounded-xl shadow-lg border-b-4 border-rose-500 text-center">
-                <span class="text-rose-400 font-bold text-[11px] tracking-wide uppercase" id="underLabel">Under 4</span>
-                <div id="underPct" class="text-2xl font-black text-white mt-1">0%</div>
-                <span id="underCount" class="text-[9px] text-gray-400">(0 Ticks)</span>
-            </div>
-        </div>
-
-        <div class="bg-gray-800 p-3 rounded-xl shadow-lg">
-            <div class="h-44">
-                <canvas id="splitChart"></canvas>
+            <div class="bg-gray-800 p-3 rounded-xl shadow-lg text-center">
+                <span class="text-rose-400 font-bold text-[11px]" id="underLabel">Under 4</span>
+                <div id="underPct" class="text-2xl font-black text-white">0%</div>
             </div>
         </div>
     </div>
-    
+
     <script>
-        // ... (Your original JS logic here, with the addition of the new variables)
+        let ws = null;
+        let isAuthorized = false;
+        let currentStake = 1.00;
+
+        const connectBtn = document.getElementById('connectBtn');
+
+        function connectToDeriv() {
+            const token = document.getElementById('apiToken').value.trim();
+            if(!token) { alert("Please enter API token"); return; }
+            
+            ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=1089");
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ authorize: token })); // AUTHORIZATION HAPPENS HERE
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+                if(data.msg_type === 'authorize') {
+                    isAuthorized = true;
+                    connectBtn.textContent = 'Trading Live...';
+                    ws.send(JSON.stringify({ ticks: document.getElementById('marketSelect').value }));
+                }
+                if(data.msg_type === 'tick') processTick(data.tick);
+            };
+        }
+
+        function processTick(tick) {
+            if(!isAuthorized) return;
+
+            const lastDigit = parseInt(tick.quote.toString().slice(-1));
+            const barrier = parseInt(document.getElementById('digitPrediction').value);
+            const stake = parseFloat(document.getElementById('stake').value);
+            
+            // AUTOMATIC EXECUTION ENGINE
+            // For demo: Example logic to buy OVER if digit > barrier
+            if(lastDigit > barrier) {
+                ws.send(JSON.stringify({
+                    buy: 1,
+                    parameters: {
+                        amount: stake,
+                        basis: "stake",
+                        contract_type: "DIGITOVER",
+                        duration: 1,
+                        duration_unit: "t",
+                        symbol: document.getElementById('marketSelect').value,
+                        barrier: barrier.toString()
+                    }
+                }));
+            }
+        }
+
+        connectBtn.addEventListener('click', connectToDeriv);
     </script>
 </body>
 </html>
