@@ -3,33 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deriv Over/Under Analyzer</title>
+    <title>Deriv Under 7 Strategy Auto-Trader</title>
     
     <meta name="theme-color" content="#111827">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-3 select-none text-xs">
 
     <div class="max-w-md mx-auto">
         
-        <div class="mb-2 text-right">
-            <a href="index.html" class="inline-block text-[10px] text-emerald-400 hover:underline">← Switch to Matches Analyzer</a>
+        <div class="bg-gray-800 p-3 rounded-xl shadow-lg mb-3 border-b-4 border-gray-600 flex justify-between items-center">
+            <div>
+                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">Strategy</span>
+                <span class="text-lg font-black text-rose-400">UNDER 7 AUTO</span>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">Live Balance</span>
+                <div id="headerBalance" class="text-xl font-black text-white">-</div>
+            </div>
         </div>
 
         <div class="bg-gray-800 p-3 rounded-xl shadow-lg mb-3 flex flex-col gap-2">
             <div>
                 <label class="block text-[10px] font-medium text-gray-400 mb-0.5">API Trading Token</label>
-                <input type="password" id="apiToken" placeholder="Paste your API token here..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-emerald-500">
+                <input type="password" id="apiToken" placeholder="Paste your Read/Trade API token here..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-emerald-500 font-mono">
             </div>
 
             <div class="flex gap-2">
                 <div class="flex-1">
                     <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Market</label>
-                    <select id="marketSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white">
+                    <select id="marketSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-emerald-500">
                         <option value="1HZ10V" selected>Volatility 10 (1s) Index</option>
                         <option value="1HZ15V">Volatility 15 (1s) Index</option>
                         <option value="1HZ25V">Volatility 25 (1s) Index</option>
@@ -37,92 +42,267 @@
                         <option value="R_100">Volatility 100 Index</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Barrier</label>
-                    <select id="digitPrediction" class="w-16 bg-gray-700 border border-gray-600 rounded-lg px-1 py-1 text-center text-white">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                        <option value="4" selected>4</option>
-                        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
-                    </select>
+            </div>
+
+            <div class="flex gap-2 mb-1">
+                <div class="flex-1">
+                    <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Base Stake ($)</label>
+                    <input type="number" id="stake" value="1.00" step="0.5" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-center text-white font-bold focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Martingale Multiplier</label>
+                    <input type="number" id="martingale" value="2.1" step="0.1" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-center text-white font-bold focus:outline-none focus:border-rose-500">
                 </div>
             </div>
 
-            <div class="flex gap-2">
-                <input type="number" id="stake" value="1.00" step="0.5" class="w-1/2 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white" placeholder="Stake ($)">
-                <input type="number" id="martingale" value="2.1" step="0.1" class="w-1/2 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-center text-white" placeholder="Martingale Mult">
-            </div>
-
-            <button id="connectBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold py-1.5 rounded-lg">
-                Connect WebSocket
-            </button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <div class="bg-gray-800 p-3 rounded-xl shadow-lg text-center">
-                <span class="text-emerald-400 font-bold text-[11px]" id="overLabel">Over 4</span>
-                <div id="overPct" class="text-2xl font-black text-white">0%</div>
-            </div>
-            <div class="bg-gray-800 p-3 rounded-xl shadow-lg text-center">
-                <span class="text-rose-400 font-bold text-[11px]" id="underLabel">Under 4</span>
-                <div id="underPct" class="text-2xl font-black text-white">0%</div>
+            <div class="flex gap-2 mt-1">
+                <button id="connectBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition-colors">
+                    Connect & Watch
+                </button>
+                <button id="tradeToggleBtn" class="flex-1 bg-gray-600 text-gray-400 font-bold py-2 rounded-lg transition-colors" disabled>
+                    Start Auto-Trade
+                </button>
             </div>
         </div>
+
+        <div class="bg-gray-800 p-3 rounded-xl shadow-lg mb-3">
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-2 text-center">Live Tick Analyzer</span>
+            
+            <div class="flex justify-between items-center w-full px-1">
+                <div id="ball-0" class="w-7 h-7 rounded-full border-2 border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">0</div>
+                <div id="ball-1" class="w-7 h-7 rounded-full border-2 border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">1</div>
+                <div id="ball-2" class="w-7 h-7 rounded-full border-2 border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">2</div>
+                <div id="ball-3" class="w-7 h-7 rounded-full border-2 border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">3</div>
+                <div id="ball-4" class="w-7 h-7 rounded-full border-2 border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">4</div>
+                <div id="ball-5" class="w-7 h-7 rounded-full border-2 border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">5</div>
+                <div id="ball-6" class="w-7 h-7 rounded-full border-2 border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">6</div>
+                <div id="ball-7" class="w-7 h-7 rounded-full border-2 border-gray-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">7</div>
+                <div id="ball-8" class="w-7 h-7 rounded-full border-2 border-rose-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">8</div>
+                <div id="ball-9" class="w-7 h-7 rounded-full border-2 border-rose-500/30 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-100">9</div>
+            </div>
+            
+            <div class="mt-3 flex justify-between text-[9px] text-gray-400 font-mono text-center">
+                <span class="text-emerald-400 flex-1">Setup Zone (0-6)</span>
+                <span class="text-rose-400 w-16">Triggers (8-9)</span>
+            </div>
+        </div>
+
+        <div class="bg-black p-2 rounded-xl shadow-lg border border-gray-700 h-32 overflow-y-auto font-mono text-[9px] text-emerald-500 space-y-1" id="tradeLog">
+            > System Ready. Awaiting token...
+        </div>
+
     </div>
 
     <script>
         let ws = null;
         let isAuthorized = false;
+        let isTrading = false;
+        let autoTradeEnabled = false; // FLAG FOR WATCH MODE
         let currentStake = 1.00;
+        let previousDigit = null;
 
         const connectBtn = document.getElementById('connectBtn');
+        const tradeToggleBtn = document.getElementById('tradeToggleBtn');
+        const tradeLogEl = document.getElementById('tradeLog');
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            let color = 'text-emerald-400';
+            if(type === 'error') color = 'text-rose-500 font-bold';
+            if(type === 'warn') color = 'text-amber-400';
+            if(type === 'win') color = 'text-blue-400 font-black';
+            if(type === 'neutral') color = 'text-gray-400';
+            
+            tradeLogEl.innerHTML = `<div class="${color}">[${time}] ${msg}</div>` + tradeLogEl.innerHTML;
+            if (tradeLogEl.children.length > 25) tradeLogEl.removeChild(tradeLogEl.lastChild);
+        }
 
         function connectToDeriv() {
+            if(ws) ws.close();
             const token = document.getElementById('apiToken').value.trim();
             if(!token) { alert("Please enter API token"); return; }
             
+            currentStake = parseFloat(document.getElementById('stake').value);
+            isTrading = false;
+            autoTradeEnabled = false;
+            previousDigit = null;
+
+            log("Connecting to WebSocket...");
             ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=1089");
 
             ws.onopen = () => {
-                ws.send(JSON.stringify({ authorize: token })); // AUTHORIZATION HAPPENS HERE
+                log("Authenticating token...");
+                ws.send(JSON.stringify({ authorize: token }));
             };
+
+            ws.onerror = (e) => log("WebSocket Error. Check connection.", 'error');
 
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
+                
                 if(data.msg_type === 'authorize') {
+                    if(data.error) {
+                        log("Auth Failed: " + data.error.message, 'error');
+                        return;
+                    }
                     isAuthorized = true;
-                    connectBtn.textContent = 'Trading Live...';
+                    
+                    // UI Updates for connection
+                    connectBtn.textContent = 'Disconnect';
+                    connectBtn.classList.replace('bg-blue-600', 'bg-rose-500');
+                    connectBtn.classList.replace('hover:bg-blue-700', 'hover:bg-rose-600');
+                    
+                    // Unlock Trade Toggle Button
+                    tradeToggleBtn.disabled = false;
+                    tradeToggleBtn.classList.replace('bg-gray-600', 'bg-emerald-500');
+                    tradeToggleBtn.classList.replace('text-gray-400', 'text-gray-950');
+
+                    document.getElementById('headerBalance').textContent = "$" + data.authorize.balance.toFixed(2);
+                    
+                    log("Auth Success. Watching market...", 'info');
                     ws.send(JSON.stringify({ ticks: document.getElementById('marketSelect').value }));
+                    ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
                 }
-                if(data.msg_type === 'tick') processTick(data.tick);
+
+                if(data.msg_type === 'balance') {
+                    document.getElementById('headerBalance').textContent = "$" + data.balance.balance.toFixed(2);
+                }
+
+                if(data.msg_type === 'tick') {
+                    processTick(data.tick);
+                }
+
+                if(data.msg_type === 'buy') {
+                    if(data.error) {
+                        log("Trade Error: " + data.error.message, 'error');
+                        isTrading = false;
+                    } else {
+                        log(`Trade Executed! Contract ID: ${data.buy.contract_id}. Waiting for result...`, 'warn');
+                        ws.send(JSON.stringify({
+                            proposal_open_contract: 1,
+                            contract_id: data.buy.contract_id,
+                            subscribe: 1
+                        }));
+                    }
+                }
+
+                if(data.msg_type === 'proposal_open_contract') {
+                    const contract = data.proposal_open_contract;
+                    if(contract && contract.is_sold) {
+                        isTrading = false; 
+                        
+                        if(contract.status === 'won') {
+                            currentStake = parseFloat(document.getElementById('stake').value);
+                            log(`WIN (+ $${contract.profit.toFixed(2)}). Stake reset to $${currentStake.toFixed(2)}`, 'win');
+                        } else {
+                            const mult = parseFloat(document.getElementById('martingale').value);
+                            currentStake = currentStake * mult;
+                            log(`LOSS. Martingale applied. Next stake: $${currentStake.toFixed(2)}`, 'error');
+                        }
+                    }
+                }
             };
+
+            ws.onclose = () => {
+                isAuthorized = false;
+                autoTradeEnabled = false;
+                
+                // Reset Connect Button
+                connectBtn.textContent = 'Connect & Watch';
+                connectBtn.classList.remove('bg-rose-500', 'hover:bg-rose-600');
+                connectBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                
+                // Reset Trade Toggle Button
+                tradeToggleBtn.disabled = true;
+                tradeToggleBtn.textContent = 'Start Auto-Trade';
+                tradeToggleBtn.className = "flex-1 bg-gray-600 text-gray-400 font-bold py-2 rounded-lg transition-colors";
+
+                log("Disconnected.", 'error');
+            }
         }
+
+        // --- TRADE TOGGLE LOGIC ---
+        tradeToggleBtn.addEventListener('click', () => {
+            autoTradeEnabled = !autoTradeEnabled;
+            
+            if (autoTradeEnabled) {
+                tradeToggleBtn.textContent = 'Stop Auto-Trade';
+                tradeToggleBtn.classList.replace('bg-emerald-500', 'bg-rose-500');
+                tradeToggleBtn.classList.replace('text-gray-950', 'text-white');
+                log("Auto-Trading ENABLED. Waiting for pattern...", "win");
+            } else {
+                tradeToggleBtn.textContent = 'Start Auto-Trade';
+                tradeToggleBtn.classList.replace('bg-rose-500', 'bg-emerald-500');
+                tradeToggleBtn.classList.replace('text-white', 'text-gray-950');
+                log("Auto-Trading PAUSED. Still watching market.", "warn");
+            }
+        });
 
         function processTick(tick) {
             if(!isAuthorized) return;
 
             const lastDigit = parseInt(tick.quote.toString().slice(-1));
-            const barrier = parseInt(document.getElementById('digitPrediction').value);
-            const stake = parseFloat(document.getElementById('stake').value);
             
-            // AUTOMATIC EXECUTION ENGINE
-            // For demo: Example logic to buy OVER if digit > barrier
-            if(lastDigit > barrier) {
-                ws.send(JSON.stringify({
-                    buy: 1,
-                    parameters: {
-                        amount: stake,
-                        basis: "stake",
-                        contract_type: "DIGITOVER",
-                        duration: 1,
-                        duration_unit: "t",
-                        symbol: document.getElementById('marketSelect').value,
-                        barrier: barrier.toString()
-                    }
-                }));
+            // --- UPDATE VISUAL BALLS ---
+            for(let i=0; i<=9; i++) {
+                const ball = document.getElementById('ball-'+i);
+                ball.className = "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-100";
+                
+                if (i === lastDigit) {
+                    ball.classList.add('scale-125', 'text-gray-900', 'shadow-md');
+                    if(i <= 6) ball.classList.add('bg-emerald-400');
+                    else if(i === 7) ball.classList.add('bg-gray-400');
+                    else ball.classList.add('bg-rose-500', 'text-white');
+                } else {
+                    ball.classList.add('text-gray-500', 'border-2');
+                    if(i <= 6) ball.classList.add('border-emerald-500/30');
+                    else if(i === 7) ball.classList.add('border-gray-500/30');
+                    else ball.classList.add('border-rose-500/30');
+                }
             }
+
+            // --- UNDER 7 STRATEGY LOGIC ---
+            if (previousDigit !== null && !isTrading) {
+                const hitTrigger = (lastDigit === 8 || lastDigit === 9);
+                const validSetup = (previousDigit >= 0 && previousDigit <= 6);
+
+                if (hitTrigger && validSetup) {
+                    // Check if Auto-Trade is turned on
+                    if (autoTradeEnabled) {
+                        isTrading = true;
+                        log(`PATTERN MET! (Prev: ${previousDigit} -> Curr: ${lastDigit}). Firing UNDER 7...`, 'warn');
+                        
+                        ws.send(JSON.stringify({
+                            buy: 1,
+                            price: 10000, 
+                            parameters: {
+                                amount: parseFloat(currentStake.toFixed(2)),
+                                basis: "stake",
+                                contract_type: "DIGITUNDER",
+                                currency: "USD",
+                                duration: 1,
+                                duration_unit: "t",
+                                symbol: document.getElementById('marketSelect').value,
+                                barrier: "7" 
+                            }
+                        }));
+                    } else {
+                        // Watch Mode: Just log that the pattern occurred
+                        log(`Pattern met (${previousDigit} -> ${lastDigit}), but Auto-Trade is OFF. Skipping.`, 'neutral');
+                    }
+                }
+            }
+            
+            previousDigit = lastDigit;
         }
 
-        connectBtn.addEventListener('click', connectToDeriv);
+        connectBtn.addEventListener('click', () => {
+            if(ws && isAuthorized) {
+                ws.close();
+            } else {
+                connectToDeriv();
+            }
+        });
     </script>
 </body>
 </html>
