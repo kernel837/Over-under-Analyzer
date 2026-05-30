@@ -19,9 +19,15 @@
                 <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">Strategy</span>
                 <span class="text-lg font-black text-blue-400">OVER 2 <span class="text-gray-500 text-sm">&</span> <span class="text-rose-400">UNDER 7</span></span>
             </div>
-            <div class="text-right">
-                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">Live Balance</span>
-                <div id="headerBalance" class="text-xl font-black text-white">-</div>
+            <div class="text-right flex gap-3">
+                <div class="border-r border-gray-700 pr-3">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">Session</span>
+                    <div id="sessionProfit" class="text-xl font-black text-gray-400">$0.00</div>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">Balance</span>
+                    <div id="headerBalance" class="text-xl font-black text-white">-</div>
+                </div>
             </div>
         </div>
 
@@ -35,11 +41,22 @@
                 <div class="flex-1">
                     <label class="block text-[10px] font-medium text-gray-400 mb-0.5">Market</label>
                     <select id="marketSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-blue-500">
-                        <option value="1HZ10V" selected>Volatility 10 (1s) Index</option>
-                        <option value="1HZ15V">Volatility 15 (1s) Index</option>
-                        <option value="1HZ25V">Volatility 25 (1s) Index</option>
-                        <option value="R_10">Volatility 10 Index</option>
-                        <option value="R_100">Volatility 100 Index</option>
+                        <optgroup label="Volatility (1s) Indices">
+                            <option value="1HZ10V" selected>Volatility 10 (1s) Index</option>
+                            <option value="1HZ25V">Volatility 25 (1s) Index</option>
+                            <option value="1HZ50V">Volatility 50 (1s) Index</option>
+                            <option value="1HZ75V">Volatility 75 (1s) Index</option>
+                            <option value="1HZ100V">Volatility 100 (1s) Index</option>
+                            <option value="1HZ150V">Volatility 150 (1s) Index</option>
+                            <option value="1HZ250V">Volatility 250 (1s) Index</option>
+                        </optgroup>
+                        <optgroup label="Continuous Volatility Indices">
+                            <option value="R_10">Volatility 10 Index</option>
+                            <option value="R_25">Volatility 25 Index</option>
+                            <option value="R_50">Volatility 50 Index</option>
+                            <option value="R_75">Volatility 75 Index</option>
+                            <option value="R_100">Volatility 100 Index</option>
+                        </optgroup>
                     </select>
                 </div>
             </div>
@@ -98,13 +115,15 @@
         let ws = null;
         let isAuthorized = false;
         let isTrading = false;
-        let autoTradeEnabled = false; // FLAG FOR WATCH MODE
+        let autoTradeEnabled = false; 
         let currentStake = 1.00;
         let previousDigit = null;
+        let sessionProfit = 0.00; // New Variable for Profit Tracker
 
         const connectBtn = document.getElementById('connectBtn');
         const tradeToggleBtn = document.getElementById('tradeToggleBtn');
         const tradeLogEl = document.getElementById('tradeLog');
+        const sessionProfitEl = document.getElementById('sessionProfit');
 
         function log(msg, type = 'info') {
             const time = new Date().toLocaleTimeString();
@@ -118,6 +137,22 @@
             if (tradeLogEl.children.length > 25) tradeLogEl.removeChild(tradeLogEl.lastChild);
         }
 
+        function updateSessionProfit(amount) {
+            sessionProfit += amount;
+            
+            // Format the string and update color based on profit/loss
+            if (sessionProfit > 0) {
+                sessionProfitEl.textContent = "+$" + sessionProfit.toFixed(2);
+                sessionProfitEl.className = "text-xl font-black text-emerald-400";
+            } else if (sessionProfit < 0) {
+                sessionProfitEl.textContent = "-$" + Math.abs(sessionProfit).toFixed(2);
+                sessionProfitEl.className = "text-xl font-black text-rose-500";
+            } else {
+                sessionProfitEl.textContent = "$0.00";
+                sessionProfitEl.className = "text-xl font-black text-gray-400";
+            }
+        }
+
         function connectToDeriv() {
             if(ws) ws.close();
             const token = document.getElementById('apiToken').value.trim();
@@ -127,9 +162,13 @@
             isTrading = false;
             autoTradeEnabled = false;
             previousDigit = null;
+            
+            // Reset Session Profit
+            sessionProfit = 0.00;
+            updateSessionProfit(0);
 
             log("Connecting to WebSocket...");
-            ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=1089");
+            ws = new WebSocket("wss://ws.binaryws.com/websockets/v3?app_id=1089");
 
             ws.onopen = () => {
                 log("Authenticating token...");
@@ -192,13 +231,16 @@
                     if(contract && contract.is_sold) {
                         isTrading = false; 
                         
+                        // Apply to Session Profit
+                        updateSessionProfit(contract.profit);
+                        
                         if(contract.status === 'won') {
                             currentStake = parseFloat(document.getElementById('stake').value);
                             log(`WIN (+ $${contract.profit.toFixed(2)}). Stake reset to $${currentStake.toFixed(2)}`, 'win');
                         } else {
                             const mult = parseFloat(document.getElementById('martingale').value);
                             currentStake = currentStake * mult;
-                            log(`LOSS. Martingale applied. Next stake: $${currentStake.toFixed(2)}`, 'error');
+                            log(`LOSS (- $${Math.abs(contract.profit).toFixed(2)}). Next stake: $${currentStake.toFixed(2)}`, 'error');
                         }
                     }
                 }
@@ -236,6 +278,14 @@
                 tradeToggleBtn.classList.replace('bg-rose-500', 'bg-emerald-500');
                 tradeToggleBtn.classList.replace('text-white', 'text-gray-950');
                 log("Auto-Trading PAUSED. Still watching market.", "warn");
+            }
+        });
+
+        // Update when market changes
+        document.getElementById('marketSelect').addEventListener('change', () => {
+            if (isAuthorized) {
+                ws.close();
+                setTimeout(() => connectToDeriv(), 500);
             }
         });
 
